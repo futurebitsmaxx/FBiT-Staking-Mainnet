@@ -9,7 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.120.0",
+    "@anthropic-ai/sdk": "^0.123.0",
     "@coral-xyz/anchor": "^0.32.1",
     "@meteora-ag/cp-amm-sdk": "^1.4.7",
     "@reown/appkit": "1.8.23",
