@@ -88,17 +88,22 @@ export function isAllowedOrigin(originHeader: string, allowlistEnv: string | und
 export function sanitizeText(value: string): string {
   let prev = value;
   let current = value;
-  const MAX_PASSES = 10; // safety cap — fixed point is normally reached in 1-2 passes
-  for (let i = 0; i < MAX_PASSES; i++) {
+  // True fixed-point loop, not a bounded pass count: each pass can only ever
+  // remove characters (never add any), so the string strictly shrinks or the
+  // loop exits — bounded by the input length, can't run away. A capped pass
+  // count (the previous approach) could leave an incompletely-sanitized
+  // residue on a crafted input needing more passes than the cap allowed,
+  // e.g. stripping one "javascript:" out of "javascriptjavascript::" splices
+  // the remaining fragments back into a fresh "javascript:" match.
+  do {
+    prev = current;
     current = prev
       .replace(/<[^>]*>/g, '')         // strip HTML tags
       .replace(/javascript\s*:/gi, '') // strip js: URL scheme
       .replace(/on\w+\s*=/gi, '')      // strip onerror=, onclick=, etc.
       .replace(/data\s*:/gi, '')       // strip data: URLs
       .replace(/vbscript\s*:/gi, '');  // strip vbscript: URL scheme
-    if (current === prev) break;
-    prev = current;
-  }
+  } while (current !== prev);
   return current.trim();
 }
 
