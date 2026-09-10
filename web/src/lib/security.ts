@@ -33,6 +33,22 @@ export function checkRateLimit(
   if (log.length >= opts.maxCalls) return false;
   log.push(now);
   _callLog.set(key, log);
+
+  // Opportunistic cleanup — some callers key this per-address (e.g. liquidity
+  // position, admin target wallet), so _callLog can otherwise accumulate one
+  // entry per distinct address touched for the lifetime of the tab. Every call
+  // has a small chance of sweeping out any other key that's gone fully quiet,
+  // keeping the map's steady-state size bounded without needing a background
+  // timer. Uses a fixed generous threshold (not this call's own opts.windowMs)
+  // since other keys in the map may have been recorded under a different
+  // caller's window.
+  const STALE_MS = 10 * 60_000; // well above every windowMs used anywhere in the app (max 120s)
+  if (_callLog.size > 20 && Math.random() < 0.1) {
+    for (const [k, times] of _callLog) {
+      if (times.every(t => now - t >= STALE_MS)) _callLog.delete(k);
+    }
+  }
+
   return true;
 }
 

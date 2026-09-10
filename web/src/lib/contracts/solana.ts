@@ -233,6 +233,26 @@ async function getAllUserAccounts(): Promise<any[]> {
   return inflight;
 }
 
+// Fast, cached lookup for chain-walking: owner pubkey (base58) -> that owner's
+// on-chain `.referrer` field. A referrer is set once at registration and can
+// never change afterward, so building this map from the same 2-minute-cached
+// bulk fetch used elsewhere (getAllUserAccounts) carries zero staleness risk
+// for chain *topology* — unlike fields such as totalStaked that change often.
+// Used to replace up to 10 sequential per-level RPC round-trips (one fetch per
+// ancestor, needed before the next level's PDA could even be derived) with a
+// single bulk fetch — cuts several seconds of pre-signature latency on stake/
+// claim/compound/unstake for users with a deep referral chain.
+async function getReferrerMap(): Promise<Map<string, PublicKey | null>> {
+  const allDecoded: any[] = await getAllUserAccounts();
+  const map = new Map<string, PublicKey | null>();
+  for (const item of allDecoded) {
+    try {
+      map.set(item.account.owner.toBase58(), item.account.referrer ?? null);
+    } catch { /* skip malformed */ }
+  }
+  return map;
+}
+
 function toLamports(amount: number): BN {
   return new BN(Math.floor(amount * SCALE));
 }
@@ -746,6 +766,11 @@ export async function solanaStake(
 
     // Cycle detection: track seen pubkeys to prevent infinite loops in corrupted chains
     const seenKeys = new Set<string>([owner.toBase58()]);
+    // Level 1's referrer was just fetched fresh above (unavoidable — the staker
+    // may have only just registered, possibly too recently for the cache below
+    // to know about them). Every level after that reads the same cached bulk
+    // map instead of a fresh per-level fetch — see getReferrerMap's comment.
+    const referrerMap = await getReferrerMap();
 
     for (let lvl = 0; lvl < 10 && currentReferrerKey !== null; lvl++) {
       const keyStr = currentReferrerKey.toBase58();
@@ -760,15 +785,9 @@ export async function solanaStake(
         { pubkey: referrerRewardAta, isSigner: false, isWritable: true },
       );
 
-      // Fetch next ancestor's key (for the next loop iteration)
-      try {
-        const refData: any = await (program.account as any).userAccount.fetch(referrerUserPda);
-        currentReferrerKey = refData.referrer
-          ? new PublicKey(refData.referrer.toString())
-          : null;
-      } catch {
-        break; // ancestor account not found — chain ends here
-      }
+      // Next ancestor's key, from the cached map — no RPC round-trip per level.
+      const nextRef = referrerMap.get(keyStr);
+      currentReferrerKey = nextRef ? nextRef : null;
     }
   } catch {
     // Chain fetch failed — proceed without referral rewards (safe degradation)
@@ -850,6 +869,7 @@ async function buildClaimReferralRemainingAccounts(
       ? new PublicKey(userAccData.referrer.toString())
       : null;
     const seenKeys = new Set<string>([ownerKey.toBase58()]);
+    const referrerMap = await getReferrerMap();
 
     for (let lvl = 0; lvl < CLAIM_REFERRAL_LEVELS && currentReferrerKey !== null; lvl++) {
       const keyStr = currentReferrerKey.toBase58();
@@ -863,12 +883,8 @@ async function buildClaimReferralRemainingAccounts(
         { pubkey: referrerRewardAta, isSigner: false, isWritable: true },
       );
 
-      try {
-        const refData: any = await program.account.userAccount.fetch(referrerUserPda);
-        currentReferrerKey = refData.referrer ? new PublicKey(refData.referrer.toString()) : null;
-      } catch {
-        break;
-      }
+      const nextRef = referrerMap.get(keyStr);
+      currentReferrerKey = nextRef ? nextRef : null;
     }
   } catch {
     // Chain fetch failed — proceed without the claim-referral layer (safe degradation,
@@ -893,6 +909,7 @@ async function buildUnstakeAncestorRemainingAccounts(
       ? new PublicKey(userAccData.referrer.toString())
       : null;
     const seenKeys = new Set<string>([ownerKey.toBase58()]);
+    const referrerMap = await getReferrerMap();
 
     for (let lvl = 0; lvl < 10 && currentReferrerKey !== null; lvl++) {
       const keyStr = currentReferrerKey.toBase58();
@@ -902,12 +919,8 @@ async function buildUnstakeAncestorRemainingAccounts(
       const [referrerUserPda] = userPda(currentReferrerKey);
       remainingAccounts.push({ pubkey: referrerUserPda, isSigner: false, isWritable: true });
 
-      try {
-        const refData: any = await program.account.userAccount.fetch(referrerUserPda);
-        currentReferrerKey = refData.referrer ? new PublicKey(refData.referrer.toString()) : null;
-      } catch {
-        break;
-      }
+      const nextRef = referrerMap.get(keyStr);
+      currentReferrerKey = nextRef ? nextRef : null;
     }
   } catch {
     // Chain fetch failed — proceed without the correction (safe degradation,
