@@ -124,6 +124,30 @@ const structuredData = {
             text: 'No. FutureBit Staking (ticker FBiT) at futurebit.in is an independent Solana DeFi staking protocol and is not affiliated with FutureBit LLC, the maker of Apollo Bitcoin mining hardware. The two are separate, unrelated projects that happen to share a similar name.',
           },
         },
+        {
+          '@type': 'Question',
+          name: 'What makes FutureBit Staking unique?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: "Both the FBiT mint authority and the platform's admin authority are permanently renounced on-chain — no team backdoor, everything independently verifiable. On top of that, FBiT pays referral income on two separate layers (a one-time 10-level bonus, plus a recurring commission on every claim/compound to active referrers) and uses a fully dynamic APY that auto-adjusts with total staked to stay sustainable.",
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'What is the history of FutureBit Staking?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: "The smart contract launched on Solana Mainnet on May 7, 2026. On August 5, 2026, the project completed a Consolidation and Security phase — migrating to a fixed-supply v2 token, locking or burning 100% of liquidity, completing an independent security review, and permanently renouncing platform ownership. It's now in its Market Expansion phase.",
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'What can FBiT be used for?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'FBiT can be staked for dynamic PoS rewards, used to earn two-layer referral income and Team Target Bonuses, deposited as single-sided SOL liquidity to earn trading fees, or simply held and traded on Solana DEXs — with a governance role planned as the protocol matures.',
+          },
+        },
       ],
     },
   ],

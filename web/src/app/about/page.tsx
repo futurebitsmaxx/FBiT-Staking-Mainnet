@@ -55,6 +55,27 @@ export default function AboutPage() {
           claim is a verifiable blockchain transaction.
         </Section>
 
+        <Section title="What Makes Us Unique">
+          Most staking platforms ask you to trust the team. We built FutureBit Staking so belief is unnecessary — every claim we
+          make is something you can verify yourself, on-chain, in seconds. Both the FBiT mint authority and the platform&apos;s
+          admin authority are permanently renounced — no team backdoor, no ability to change the rules later. On top of that
+          transparency, FBiT pays referral commissions on two separate layers (a one-time bonus across 10 levels when someone
+          first stakes, plus a recurring commission on every claim or compound to active referrers, levels 1-5) — real, ongoing
+          passive income for people who genuinely grow the community, not just a one-time payout. APY is fully dynamic, automatically
+          adjusting with total staked, so rewards stay sustainable instead of promising a fixed number the protocol can&apos;t back.
+        </Section>
+
+        <Section title="Our History">
+          FutureBit Staking&apos;s smart contract launched on Solana Mainnet on <b style={{ color: '#f1f5f9' }}>May 7, 2026</b>,
+          going live with dynamic Proof-of-Stake staking, a 10-level referral system, Team Target Bonuses, and a deflationary burn
+          mechanism from day one. On <b style={{ color: '#f1f5f9' }}>August 5, 2026</b>, the project completed a deliberate
+          Consolidation and Security phase: FBiT was migrated to a fixed-supply v2 token of 250,000,000, with mint authority
+          permanently renounced, 100% of protocol liquidity locked or burned, and an independent smart-contract security review
+          completed — identifying and fixing critical issues before they could be exploited. Platform ownership was also
+          permanently renounced on-chain shortly after. The project is now in its Market Expansion phase, growing DEX liquidity,
+          community, and data-provider visibility. Every date and claim here is independently verifiable on-chain.
+        </Section>
+
         <Section title="Our Technology">
           <ul style={{ paddingLeft: 20, lineHeight: 2, color: 'var(--text-secondary)' }}>
             <li><b style={{ color: '#f1f5f9' }}>Solana Smart Contract</b> — written in Rust using the Anchor framework. Deployed on Solana Mainnet.</li>
@@ -70,7 +91,17 @@ export default function AboutPage() {
             <li><b style={{ color: '#f1f5f9' }}>Symbol:</b> FBiT</li>
             <li><b style={{ color: '#f1f5f9' }}>Network:</b> Solana (SPL Token)</li>
             <li><b style={{ color: '#f1f5f9' }}>Solana Mint:</b> 5uJ8rkiqEs5uzERCqVw9a1eC6BkP54MZAF3D229dyoME</li>
-            <li><b style={{ color: '#f1f5f9' }}>Use Case:</b> Staking, referral rewards, team target bonuses</li>
+          </ul>
+        </Section>
+
+        <Section title="What FBiT Can Be Used For">
+          <ul style={{ paddingLeft: 20, lineHeight: 2, color: 'var(--text-secondary)' }}>
+            <li><b style={{ color: '#f1f5f9' }}>Staking</b> — lock FBiT to earn dynamic Proof-of-Stake rewards (10%-300% APY), funded by a dedicated emission reserve rather than new buyers&apos; capital.</li>
+            <li><b style={{ color: '#f1f5f9' }}>Referral income</b> — earn on two separate layers: a one-time 10-level commission when someone first stakes, plus a recurring commission on every claim/compound from active referrals (levels 1-5).</li>
+            <li><b style={{ color: '#f1f5f9' }}>Team Target Bonuses</b> — extra APY based on your entire downline network&apos;s combined stake, not just direct referrals.</li>
+            <li><b style={{ color: '#f1f5f9' }}>Liquidity provision</b> — deposit single-sided SOL into the live FBiT/SOL pool and earn real trading fees, no FBiT needed upfront.</li>
+            <li><b style={{ color: '#f1f5f9' }}>Open market trading</b> — FBiT trades freely on Solana DEXs, no permission or lock-up required just to hold or exchange it.</li>
+            <li><b style={{ color: '#f1f5f9' }}>Future governance</b> — as the protocol matures, FBiT is planned to gain a governance role for active holders.</li>
           </ul>
         </Section>
 
