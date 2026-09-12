@@ -18,6 +18,7 @@ const NAV_LINKS = [
 const WHITEPAPER_URL   = 'https://github.com/futurebitsmaxx/FBiT-Staking-Mainnet/blob/main/WHITEPAPER.md';
 const BROCHURE_URL     = '/brochure.pdf';
 const INCOME_GUIDE_URL = '/referral-income-guide.pdf';
+const VISION_URL       = '/vision-community.pdf';
 const FBIT_MINT        = '5uJ8rkiqEs5uzERCqVw9a1eC6BkP54MZAF3D229dyoME';
 const VERIFY_URL       = `https://solscan.io/token/${FBIT_MINT}`;
 
@@ -31,6 +32,7 @@ const RESOURCE_LINKS = [
   { href: INCOME_GUIDE_URL, label: 'Income Guide',    icon: '💰', external: true,  accent: false, download: true },
   { href: WHITEPAPER_URL,   label: 'Whitepaper',      icon: '📄', external: true,  accent: false },
   { href: BROCHURE_URL,     label: 'Brochure',        icon: '📑', external: true,  accent: false, download: true },
+  { href: VISION_URL,       label: 'Vision & Community', icon: '🌱', external: true, accent: false, download: true },
 ];
 
 function ResourcesDropdown() {
