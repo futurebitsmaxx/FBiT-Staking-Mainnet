@@ -93,6 +93,52 @@ export default function ReferralPanel() {
   const [isFetchingChain, setIsFetchingChain]     = useState(false);
   const [hasFetchedChain, setHasFetchedChain]     = useState(false);
 
+  // ── Look up any wallet's public staking/team stats (all on-chain data — a
+  // wallet's UserAccount is publicly readable by anyone via Solscan or direct
+  // RPC anyway, so this exposes nothing that isn't already public) ────────────
+  const [lookupInput, setLookupInput]     = useState('');
+  const [lookupLoading, setLookupLoading] = useState(false);
+  const [lookupError, setLookupError]     = useState<string | null>(null);
+  const [lookupResult, setLookupResult]   = useState<{
+    address: string; totalStaked: number; teamSize: number;
+    directReferrals: number; referrer: string | null; registeredAt: number;
+  } | null>(null);
+
+  const handleLookup = useCallback(async () => {
+    const addr = lookupInput.trim();
+    setLookupError(null);
+    setLookupResult(null);
+    const { isValidSolanaAddress } = await import('@/lib/security');
+    if (!isValidSolanaAddress(addr)) {
+      setLookupError('Enter a valid Solana wallet address');
+      return;
+    }
+    setLookupLoading(true);
+    try {
+      const solana = await import('@/lib/contracts/solana');
+      const [account, refInfo] = await Promise.all([
+        solana.solanaGetUserAccount(addr),
+        solana.solanaGetReferralInfo(addr),
+      ]);
+      if (!account) {
+        setLookupError('This wallet has not registered on FBiT Staking yet');
+        return;
+      }
+      setLookupResult({
+        address:         addr,
+        totalStaked:     account.totalStaked,
+        teamSize:        Math.max(account.teamSize, refInfo?.fullNetworkSize ?? 0),
+        directReferrals: Math.max(account.referralCount, refInfo?.totalReferrals ?? 0),
+        referrer:        account.referrer,
+        registeredAt:    account.registeredAt,
+      });
+    } catch {
+      setLookupError('Failed to fetch on-chain data — please try again');
+    } finally {
+      setLookupLoading(false);
+    }
+  }, [lookupInput]);
+
   const syncReferralData = useCallback(async (): Promise<boolean> => {
     if (!address) return false;
     setIsRefreshing(true);
@@ -378,6 +424,68 @@ export default function ReferralPanel() {
           </div>
         </div>
       )}
+
+      {/* Wallet Lookup — check anyone's (upline, downline, or any wallet's) public
+          staking/team stats. All fields here are publicly readable on-chain
+          already (e.g. via Solscan), so this exposes nothing new. */}
+      <div className="glass-card">
+        <p className="text-text-muted text-xs font-display uppercase tracking-wider mb-2">Look Up Any Wallet</p>
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={lookupInput}
+            onChange={(e) => setLookupInput(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') void handleLookup(); }}
+            placeholder="Paste a Solana wallet address..."
+            className="flex-1 min-w-0 bg-surface-900/60 border border-white/10 rounded-lg px-3 py-2 text-xs font-mono text-text-primary placeholder:text-text-muted focus:outline-none focus:border-brand-500/40"
+          />
+          <button
+            type="button"
+            onClick={() => void handleLookup()}
+            disabled={lookupLoading || !lookupInput.trim()}
+            className="px-4 py-2 rounded-lg font-display text-xs font-semibold bg-brand-500/15 text-brand-400 border border-brand-500/30 hover:bg-brand-500/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+          >
+            {lookupLoading ? 'Searching...' : 'Search'}
+          </button>
+        </div>
+
+        {lookupError && (
+          <p className="text-red-400 text-xs mt-2">{lookupError}</p>
+        )}
+
+        {lookupResult && (
+          <div className="mt-3 pt-3 border-t border-white/5">
+            <p className="font-mono text-[11px] text-text-muted truncate mb-2" title={lookupResult.address}>
+              {lookupResult.address}
+            </p>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <div className="bg-surface-900/40 rounded-lg p-2 text-center">
+                <p className="text-text-muted text-[10px] font-display uppercase tracking-wider">Staked</p>
+                <p className="font-display font-bold text-sm mt-0.5 text-brand-400">{formatNumber(lookupResult.totalStaked)}</p>
+              </div>
+              <div className="bg-surface-900/40 rounded-lg p-2 text-center">
+                <p className="text-text-muted text-[10px] font-display uppercase tracking-wider">Team Size</p>
+                <p className="font-display font-bold text-sm mt-0.5 text-accent-amber">{lookupResult.teamSize}</p>
+              </div>
+              <div className="bg-surface-900/40 rounded-lg p-2 text-center">
+                <p className="text-text-muted text-[10px] font-display uppercase tracking-wider">Direct Refs</p>
+                <p className="font-display font-bold text-sm mt-0.5 text-accent-cyan">{lookupResult.directReferrals}</p>
+              </div>
+              <div className="bg-surface-900/40 rounded-lg p-2 text-center">
+                <p className="text-text-muted text-[10px] font-display uppercase tracking-wider">Joined</p>
+                <p className="font-display font-bold text-sm mt-0.5">
+                  {lookupResult.registeredAt > 0 ? new Date(lookupResult.registeredAt * 1000).toLocaleDateString() : '—'}
+                </p>
+              </div>
+            </div>
+            {lookupResult.referrer && (
+              <p className="text-text-muted text-[11px] mt-2 truncate" title={lookupResult.referrer}>
+                Referred by: <span className="font-mono text-text-secondary">{lookupResult.referrer}</span>
+              </p>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
