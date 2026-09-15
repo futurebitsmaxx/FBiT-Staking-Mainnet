@@ -185,14 +185,6 @@ function SwapForm() {
         </div>
       </div>
 
-      {reversed && (
-        <p className="text-[11px] text-accent-amber px-1">
-          ⚠ FBiT is currently buy-only on Jupiter. FBiT&apos;s liquidity is burned/locked (it can
-          never be rugged) — the pool is just still small, so Jupiter&apos;s safety filter blocks
-          selling for now. Selling may fail.
-        </p>
-      )}
-
       {/* From */}
       <div className="rounded-xl bg-surface-800/60 border border-white/5 p-3">
         <div className="flex items-center justify-between mb-1.5">
