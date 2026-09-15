@@ -122,6 +122,10 @@ export interface ReferralInfo {
    *  10 reward-eligible levels), this has no depth limit. Use for Team Size /
    *  Team Target Bonus tier eligibility, never `referrals.length`. */
   fullNetworkSize: number;
+  /** Count of the full-depth downline (see fullNetworkSize) with totalStaked > 0.
+   *  Same depth-cap bug as fullNetworkSize applies to a naive `referrals.filter()`
+   *  count — use this instead for the "Active" stat. */
+  fullNetworkActiveCount: number;
 }
 
 export interface ReferralEntry {

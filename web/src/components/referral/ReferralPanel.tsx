@@ -264,7 +264,10 @@ export default function ReferralPanel() {
   const calculatedCommission = displayedTree.reduce((s, r) => s + r.rewardEarned, 0);
   const authoritativeRewards = userAccount?.totalReferralRewards ?? referralInfo?.totalReferralRewards;
   const totalRewards    = authoritativeRewards !== undefined ? authoritativeRewards : calculatedCommission;
-  const activeReferrals = referralInfo?.referrals.filter(r => r.stakedAmount > 0).length ?? 0;
+  // Must be fullNetworkActiveCount (unbounded depth), not a filter over
+  // `referrals` (capped at the 10 reward-eligible levels) — same depth-cap bug
+  // as Team Size/networkTotal above.
+  const activeReferrals = referralInfo?.fullNetworkActiveCount ?? 0;
   // Use BFS network count as fallback when on-chain team_size is 0.
   // team_size is only updated inside the referral loop (requires remaining_accounts at stake time);
   // if that was missed for early stakes, BFS gives the correct count.
