@@ -2004,9 +2004,16 @@ export async function solanaGetReferralInfo(ownerAddress: string): Promise<Refer
     // already-fetched referrer graph with no level cap so these stats reflect
     // everyone who traces back to this wallet at any depth, not just the 10
     // reward-eligible levels.
+    // On-chain team_total_staked includes the wallet's OWN stake, not just its
+    // downline (stake() adds staked_amount to the staker's own team_total_staked
+    // AND to every ancestor's, see lib.rs) — unlike team_size/referral_count,
+    // which only ever count descendants. The full-depth sum below must match
+    // that "self + downline" semantic or it'll systematically undercount by
+    // exactly this wallet's own totalStaked.
+    const ownStaked = fromLamports(acc.totalStaked);
     let fullNetworkSize = directCount;
     let fullNetworkActiveCount = referrals.filter(r => r.stakedAmount > 0).length;
-    let fullNetworkTotalStaked = referrals.reduce((s, r) => s + r.stakedAmount, 0);
+    let fullNetworkTotalStaked = ownStaked + referrals.reduce((s, r) => s + r.stakedAmount, 0);
     try {
       const allDecoded: any[] = await getAllUserAccounts();
       const referrerMapFull = new Map<string, { addr: string; staked: number }[]>();
@@ -2037,7 +2044,9 @@ export async function solanaGetReferralInfo(ownerAddress: string): Promise<Refer
       }
       fullNetworkSize         = Math.max(seenFull.size - 1, directCount);
       fullNetworkActiveCount  = Math.max(activeCount, fullNetworkActiveCount);
-      fullNetworkTotalStaked  = Math.max(stakedSum, fullNetworkTotalStaked);
+      // stakedSum here is downline-only (BFS never adds the root itself) — add
+      // ownStaked back in to match team_total_staked's "self + downline" semantic.
+      fullNetworkTotalStaked  = Math.max(ownStaked + stakedSum, fullNetworkTotalStaked);
     } catch { /* keep referrals-derived fallback */ }
 
     return {
