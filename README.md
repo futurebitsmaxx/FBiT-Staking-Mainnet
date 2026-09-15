@@ -392,11 +392,6 @@ Built with **Next.js 16** (App Router, Turbopack) + **TypeScript** + **Tailwind 
 |------|---------|
 | `SupportChat.tsx` | Floating AI support-chat widget (Claude Haiku via `/api/support-chat`) |
 
-#### `web/src/components/ads/`
-| File | Purpose |
-|------|---------|
-| `AdsManager.tsx` | Loads Coinzilla/Adcash placements based on `NEXT_PUBLIC_ADS_*` env vars (no Admin Panel toggle — removed in v1.7, see Changelog) |
-
 #### `web/src/components/ui/`
 | File | Purpose |
 |------|---------|
@@ -589,13 +584,9 @@ NEXT_PUBLIC_SOLANA_REWARD_TOKEN_MINT=5uJ8rkiqEs5uzERCqVw9a1eC6BkP54MZAF3D229dyoM
 NEXT_PUBLIC_SOLANA_STAKE_VAULT=   # Optional — auto-derived from Program ID
 NEXT_PUBLIC_SOLANA_REWARD_VAULT=  # Optional — auto-derived from Program ID
 NEXT_PUBLIC_SOLANA_RESERVE_VAULT= # Optional — auto-derived from Program ID
-
-# ===== ADS (optional) =====
-# NEXT_PUBLIC_ADS_COINZILLA_BANNER_ZONE / _NATIVE_ZONE / _STICKY_ZONE
-# NEXT_PUBLIC_ADS_ADCASH_BANNER_ZONE / _PUSH_ZONE
 ```
 
-> **Note:** The app shows a `ContractSetupNotice` warning until `PROGRAM_ID` is filled in. All staking buttons are disabled until the contract is configured. `NEXT_PUBLIC_SITE_URL` and the ad-zone vars are separate from the contract config and are easy to forget after a domain change — env vars aren't part of a git deploy, they have to be updated directly in the hosting platform (see the v2.5 and v1.7 Changelog entries for two real incidents caused by exactly this).
+> **Note:** The app shows a `ContractSetupNotice` warning until `PROGRAM_ID` is filled in. All staking buttons are disabled until the contract is configured. `NEXT_PUBLIC_SITE_URL` is separate from the contract config and is easy to forget after a domain change — env vars aren't part of a git deploy, they have to be updated directly in the hosting platform (see the v2.5 and v1.7 Changelog entries for two real incidents caused by exactly this).
 
 ---
 
@@ -711,6 +702,20 @@ npm start
 ---
 
 ## 17. Changelog
+
+### v2.9 — September 2026
+
+**Team Size / Active Referrals / Team Target Bonus were all silently undercounting for networks deeper than 10 levels.** Traced to the same root cause: the Referral panel and Dashboard computed these three stats from a BFS walk capped at 10 levels — matching the on-chain reward-payment depth, but wrongly reused for stats that should have no depth limit. Verified on-chain for the platform's root referral wallet (73 total registered users): Team Size was showing 38 instead of the true 72; Active Referrals showed 37 instead of 70; Team Target Bonus's underlying team-stake figure showed 15,733 FBiT instead of the true 24,245 FBiT (self-stake + full unbounded downline — on-chain `team_total_staked` credits both the staker's own account and every ancestor, unlike `team_size`, which only ever counts descendants; an earlier pass at this fix missed that asymmetry and undercounted by exactly the wallet's own stake before being corrected). Added `ReferralInfo.fullNetworkSize` / `fullNetworkActiveCount` / `fullNetworkTotalStaked`, all computed via one additional unbounded-depth walk over the already-cached account list (no extra RPC calls), and switched Dashboard/ReferralPanel to use them instead of the capped values.
+
+**New feature: "Look Up Any Wallet"** in the Referral tab — paste any Solana address (a referrer, a downline member, or any other wallet) to see its public on-chain staking/team stats (total staked, team size, direct referrals, referrer, registration date). All fields were already publicly readable via Solscan; this just surfaces them in one place. Reuses the existing per-address-capable `solanaGetUserAccount`/`solanaGetReferralInfo` functions — no new on-chain calls.
+
+**Security hardening, prompted by GitHub CodeQL and a CertiK Skynet website scan:**
+- Dismissed two stale CodeQL "incomplete multi-character sanitization" alerts on `sanitizeText()` as false positives — the function already runs its replace-chain inside a `do…while` fixed-point loop (verified against nested-tag bypass patterns), which CodeQL's static check doesn't recognize as closing the gap it flags.
+- Added a `Content-Security-Policy` header in **Report-Only** mode (`next.config.mjs`) — addresses CertiK's "Missing Content Security Policy" finding without any risk of breaking wallet-connect: Report-Only blocks nothing, it only logs would-be violations to the browser console. Once a few days of manual testing show no unexpected violations, the header flips to enforcing.
+- Removed the Coinzilla/Adcash ad-placement integration entirely (`AdsManager.tsx`, `adConfig.ts`, the `NEXT_PUBLIC_ADS_*` env vars, and their CSP allowlist entries) — simplifies the CSP surface and removes two rotating-subdomain ad networks from the trust boundary.
+- Merged three Dependabot dependency-update PRs (`@solana/web3.js` 1.98.4→1.99.0, `autoprefixer` 10.5.4→10.5.5, `@anthropic-ai/sdk` 0.123.0→0.124.0) — all minor/patch, CodeQL-clean, Vercel-build-clean.
+
+**New content:** added "What Makes Us Unique," "Our History" (on-chain-verified launch/migration dates), and "What FBiT Can Be Used For" sections to the About page and matching short-form FAQ entries (synced into the `FAQPage` JSON-LD) — content that CoinGecko's listing form asks for but was previously missing from the site itself.
 
 ### v2.8 — September 2026
 

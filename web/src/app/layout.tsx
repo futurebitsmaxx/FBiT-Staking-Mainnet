@@ -5,7 +5,6 @@ import Script from 'next/script';
 import ExtensionErrorSuppressor from '@/components/ExtensionErrorSuppressor';
 import DataMigration from '@/components/DataMigration';
 import { warnMissingEnv } from '@/lib/security';
-import AdsManager from '@/components/ads/AdsManager';
 import SupportChat from '@/components/chat/SupportChat';
 
 warnMissingEnv();
@@ -305,7 +304,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           `}
         </Script>
 
-        <AdsManager />
         <ExtensionErrorSuppressor />
         <DataMigration />
         <div className="bg-mesh fixed inset-0" />

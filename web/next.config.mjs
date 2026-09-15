@@ -24,13 +24,12 @@ const nextConfig = {
   // transaction.
   //
   // CSP is shipped as Content-Security-Policy-**Report-Only** deliberately, not
-  // enforced: Reown AppKit's wallet modal (WalletConnect relay/verify), the ad
-  // networks (Coinzilla/Adcash — rotating subdomains, no fixed list), Jupiter,
+  // enforced: Reown AppKit's wallet modal (WalletConnect relay/verify), Jupiter,
   // Solana RPC, and GeckoTerminal's embedded widget all load cross-origin
   // resources that are easy to get subtly wrong. Report-Only mode blocks
   // NOTHING — it only logs would-be violations to the browser console — so
   // this is zero-risk to ship. Watch the console across the app (connect
-  // wallet, stake, swap, view the ads/price widget) for a few days; once no
+  // wallet, stake, swap, view the price widget) for a few days; once no
   // unexpected violations show up, flip the header key below to the enforcing
   // `Content-Security-Policy` and remove this comment.
   async headers() {
@@ -38,14 +37,14 @@ const nextConfig = {
       "default-src 'self'",
       // 'unsafe-eval'/'wasm-unsafe-eval': required by @solana/web3.js and wallet
       // adapter WASM; 'unsafe-inline': Next.js inline bootstrap scripts.
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://coinzilla.io https://cdn.czilladx.com https://cdn.adcash.com",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' data: https://fonts.gstatic.com",
-      // Broad https: for images — ad-network creatives and IPFS-hosted token
-      // logos come from many rotating hosts with no practical fixed list.
+      // Broad https: for images — IPFS-hosted token logos come from many
+      // rotating gateway hosts with no practical fixed list.
       "img-src 'self' data: blob: https:",
       "connect-src 'self' https://api.mainnet-beta.solana.com https://mainnet.helius-rpc.com https://*.helius-rpc.com https://lite-api.jup.ag https://api.geckoterminal.com https://api.dexscreener.com https://www.google-analytics.com wss://relay.walletconnect.com https://relay.walletconnect.com https://pulse.walletconnect.org https://api.web3modal.org https://explorer-api.walletconnect.com https://verify.walletconnect.com https://*.walletconnect.com https://*.walletconnect.org",
-      "frame-src 'self' https://www.geckoterminal.com https://verify.walletconnect.com https://verify.walletconnect.org https://cdn.czilladx.com https://cdn.adcash.com",
+      "frame-src 'self' https://www.geckoterminal.com https://verify.walletconnect.com https://verify.walletconnect.org",
       "frame-ancestors 'none'",
       "object-src 'none'",
       "base-uri 'self'",
