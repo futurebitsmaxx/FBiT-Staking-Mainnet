@@ -105,6 +105,10 @@ export default function Dashboard() {
   // 10 reward-eligible levels) — a downline chain can run deeper than that.
   const networkTotal = referralInfo?.fullNetworkSize ?? 0;
   const effectiveTeamSize = Math.max(userAccount?.teamSize ?? 0, networkTotal);
+  // Same depth-cap bug as team_size: on-chain team_total_staked only propagates
+  // up the nearest 10 ancestors from each staker, so it undercounts for deeper
+  // networks — use the full-depth BFS sum for Team Target Bonus tier math.
+  const effectiveTeamTotalStaked = Math.max(userAccount?.teamTotalStaked ?? 0, referralInfo?.fullNetworkTotalStaked ?? 0);
 
   const activeStakes = stakes
     .filter(s => s.isActive)
@@ -553,7 +557,7 @@ export default function Dashboard() {
 
       {/* Team Target Bonus */}
       <TeamTargetBonusCard
-        teamTotalStaked={userAccount?.teamTotalStaked ?? 0}
+        teamTotalStaked={effectiveTeamTotalStaked}
         teamSize={effectiveTeamSize}
         onChainBonusBps={userAccount?.currentTierBonusBps}
         liveTiers={platformStats.teamTiers as typeof TEAM_TARGET_TIERS[number][] | undefined}

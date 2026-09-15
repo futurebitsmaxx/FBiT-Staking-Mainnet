@@ -2006,6 +2006,7 @@ export async function solanaGetReferralInfo(ownerAddress: string): Promise<Refer
     // reward-eligible levels.
     let fullNetworkSize = directCount;
     let fullNetworkActiveCount = referrals.filter(r => r.stakedAmount > 0).length;
+    let fullNetworkTotalStaked = referrals.reduce((s, r) => s + r.stakedAmount, 0);
     try {
       const allDecoded: any[] = await getAllUserAccounts();
       const referrerMapFull = new Map<string, { addr: string; staked: number }[]>();
@@ -2023,6 +2024,7 @@ export async function solanaGetReferralInfo(ownerAddress: string): Promise<Refer
       const seenFull = new Set<string>([ownerAddress]);
       const stack = [ownerAddress];
       let activeCount = 0;
+      let stakedSum = 0;
       while (stack.length) {
         const cur = stack.pop()!;
         for (const child of referrerMapFull.get(cur) ?? []) {
@@ -2030,10 +2032,12 @@ export async function solanaGetReferralInfo(ownerAddress: string): Promise<Refer
           seenFull.add(child.addr);
           stack.push(child.addr);
           if (child.staked > 0) activeCount++;
+          stakedSum += child.staked;
         }
       }
       fullNetworkSize         = Math.max(seenFull.size - 1, directCount);
       fullNetworkActiveCount  = Math.max(activeCount, fullNetworkActiveCount);
+      fullNetworkTotalStaked  = Math.max(stakedSum, fullNetworkTotalStaked);
     } catch { /* keep referrals-derived fallback */ }
 
     return {
@@ -2044,6 +2048,7 @@ export async function solanaGetReferralInfo(ownerAddress: string): Promise<Refer
       chain:        [],
       fullNetworkSize,
       fullNetworkActiveCount,
+      fullNetworkTotalStaked,
     };
   } catch {
     return null;

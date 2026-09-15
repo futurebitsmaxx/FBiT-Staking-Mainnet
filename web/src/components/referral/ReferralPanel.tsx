@@ -169,7 +169,10 @@ export default function ReferralPanel() {
   const walletData      = getWalletData();
   const referralInfo    = walletData?.referralInfo;
   const userAccount     = walletData?.userAccount;
-  const teamTotalStaked = userAccount?.teamTotalStaked ?? 0;
+  // Same depth-cap bug as team_size: on-chain team_total_staked only propagates
+  // up the nearest 10 ancestors from each staker, so it undercounts for deeper
+  // networks — use the full-depth BFS sum for Team Target Bonus tier math.
+  const teamTotalStaked = Math.max(userAccount?.teamTotalStaked ?? 0, referralInfo?.fullNetworkTotalStaked ?? 0);
   const teamSizeVal     = userAccount?.teamSize ?? 0;
 
   // Detect new referrals

@@ -126,6 +126,12 @@ export interface ReferralInfo {
    *  Same depth-cap bug as fullNetworkSize applies to a naive `referrals.filter()`
    *  count — use this instead for the "Active" stat. */
   fullNetworkActiveCount: number;
+  /** Sum of totalStaked across the full-depth downline (see fullNetworkSize).
+   *  The on-chain UserAccount.team_total_staked field only propagates up the
+   *  nearest 10 ancestors from each staker (same limit as the reward-payment
+   *  loop), so it silently undercounts for networks deeper than that — use
+   *  this for Team Target Bonus tier calculations instead. */
+  fullNetworkTotalStaked: number;
 }
 
 export interface ReferralEntry {

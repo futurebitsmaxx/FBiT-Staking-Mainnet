@@ -231,6 +231,7 @@ export function useContract(): ContractHook {
             // path (only hit when the full referralInfo fetch itself failed) —
             // 0 undercounts safely rather than guessing.
             fullNetworkActiveCount: 0,
+            fullNetworkTotalStaked: update.userAccount.teamTotalStaked,
           };
         }
       }

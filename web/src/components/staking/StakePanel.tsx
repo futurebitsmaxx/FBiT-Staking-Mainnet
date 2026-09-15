@@ -157,6 +157,7 @@ export default function StakePanel() {
               chain: refData.referralInfo?.chain ?? [],
               fullNetworkSize: (refData.referralInfo?.fullNetworkSize ?? 0) + 1,
               fullNetworkActiveCount: (refData.referralInfo?.fullNetworkActiveCount ?? 0) + 1,
+              fullNetworkTotalStaked: (refData.referralInfo?.fullNetworkTotalStaked ?? 0) + stakeAmount,
             },
             userAccount: refData.userAccount
               ? { ...refData.userAccount, referralCount: (refData.userAccount.referralCount ?? 0) + 1 }
