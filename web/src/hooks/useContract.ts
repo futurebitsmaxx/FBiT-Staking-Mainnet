@@ -226,6 +226,7 @@ export function useContract(): ContractHook {
             referralLink:         '',
             referrals:            [],
             chain:                [],
+            fullNetworkSize:      update.userAccount.teamSize,
           };
         }
       }

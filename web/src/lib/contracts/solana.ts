@@ -1997,12 +1997,46 @@ export async function solanaGetReferralInfo(ownerAddress: string): Promise<Refer
 
     // Direct referrals = L1 only; totalReferrals is the on-chain count or scan count
     const directCount = referrals.filter(r => r.level === 1).length;
+
+    // True full-depth downline size (Team Size) — `referrals` above stops at 10
+    // levels (matching the on-chain reward-payment depth), but a downline chain
+    // can run deeper than that. Re-walk the same already-fetched referrer graph
+    // with no level cap so Team Size reflects everyone who traces back to this
+    // wallet at any depth, not just the 10 reward-eligible levels.
+    let fullNetworkSize = directCount;
+    try {
+      const allDecoded: any[] = await getAllUserAccounts();
+      const referrerMapFull = new Map<string, string[]>();
+      for (const item of allDecoded) {
+        try {
+          const ref: PublicKey | null = item.account.referrer ?? null;
+          if (!ref) continue;
+          const referrerKey = ref.toBase58();
+          const ownerKey    = item.account.owner.toBase58();
+          if (!referrerMapFull.has(referrerKey)) referrerMapFull.set(referrerKey, []);
+          referrerMapFull.get(referrerKey)!.push(ownerKey);
+        } catch { /* skip malformed */ }
+      }
+      const seenFull = new Set<string>([ownerAddress]);
+      const stack = [ownerAddress];
+      while (stack.length) {
+        const cur = stack.pop()!;
+        for (const child of referrerMapFull.get(cur) ?? []) {
+          if (seenFull.has(child)) continue;
+          seenFull.add(child);
+          stack.push(child);
+        }
+      }
+      fullNetworkSize = Math.max(seenFull.size - 1, directCount);
+    } catch { /* keep directCount fallback */ }
+
     return {
       totalReferrals:       Math.max(totalReferrals, directCount),
       totalReferralRewards,
       referralLink: '',
       referrals,
       chain:        [],
+      fullNetworkSize,
     };
   } catch {
     return null;

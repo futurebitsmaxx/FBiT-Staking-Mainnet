@@ -155,6 +155,7 @@ export default function StakePanel() {
                 { address: address!, level: 1, stakedAmount: stakeAmount, rewardEarned: 0, registeredAt: Math.floor(Date.now() / 1000), directReferrals: 0 },
               ],
               chain: refData.referralInfo?.chain ?? [],
+              fullNetworkSize: (refData.referralInfo?.fullNetworkSize ?? 0) + 1,
             },
             userAccount: refData.userAccount
               ? { ...refData.userAccount, referralCount: (refData.userAccount.referralCount ?? 0) + 1 }

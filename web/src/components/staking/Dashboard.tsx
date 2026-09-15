@@ -100,8 +100,10 @@ export default function Dashboard() {
   const transactions = walletData?.transactions ?? [];
 
   // team_size on-chain is only updated when remaining_accounts are passed at stake time.
-  // Use BFS network count as fallback so Dashboard matches ReferralPanel.
-  const networkTotal = referralInfo?.referrals.length ?? 0;
+  // Use the full-depth BFS network count as fallback so Dashboard matches ReferralPanel.
+  // Must be fullNetworkSize (unbounded depth), not referrals.length (capped at the
+  // 10 reward-eligible levels) — a downline chain can run deeper than that.
+  const networkTotal = referralInfo?.fullNetworkSize ?? 0;
   const effectiveTeamSize = Math.max(userAccount?.teamSize ?? 0, networkTotal);
 
   const activeStakes = stakes

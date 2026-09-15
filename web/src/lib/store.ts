@@ -31,6 +31,7 @@ function createEmptyWalletData(address: string): WalletData {
     referralLink: '',
     referrals: [],
     chain: [],
+    fullNetworkSize: 0,
   };
   return {
     stakes: [],

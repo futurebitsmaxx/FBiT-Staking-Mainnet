@@ -118,6 +118,10 @@ export interface ReferralInfo {
   referralLink: string;
   referrals: ReferralEntry[];
   chain: string[];
+  /** True total downline size at ANY depth — unlike `referrals` (capped at the
+   *  10 reward-eligible levels), this has no depth limit. Use for Team Size /
+   *  Team Target Bonus tier eligibility, never `referrals.length`. */
+  fullNetworkSize: number;
 }
 
 export interface ReferralEntry {

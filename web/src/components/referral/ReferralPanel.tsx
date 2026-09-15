@@ -195,7 +195,9 @@ export default function ReferralPanel() {
   const chainAddress = solanaAddress ?? address;
   const referralLink    = chainAddress ? generateReferralLink(chainAddress) : '';
   const myReferrer      = userAccount?.referrer ?? null;
-  const networkTotal    = referralInfo?.referrals.length ?? 0;  // all-level count
+  // Must be fullNetworkSize (unbounded depth), not referrals.length (capped at the
+  // 10 reward-eligible levels) — a downline chain can run deeper than that.
+  const networkTotal    = referralInfo?.fullNetworkSize ?? 0;
   // On-chain UserAccount.referral_count only increments inside stake()'s referral
   // loop, and only on a referral's very first stake — if that particular stake's
   // remaining_accounts was ever built incorrectly (client bug, RPC hiccup walking
