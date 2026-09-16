@@ -1935,8 +1935,13 @@ export async function solanaGetReferralInfo(ownerAddress: string): Promise<Refer
     const connection = getRpcConnection();
     const programId  = getProgramId();
     let referrals: import('@/types').ReferralEntry[] = [];
+    // Hoisted so the full-depth walk below can reuse this instead of re-fetching —
+    // getAllUserAccounts() is cached/in-flight-deduped so a second call was never
+    // an extra RPC round-trip, but there's no reason to pay even the redundant
+    // function-call/promise overhead twice in the same request.
+    let allDecoded: any[] = [];
     try {
-      const allDecoded: any[] = await getAllUserAccounts();
+      allDecoded = await getAllUserAccounts();
 
       // Build referrerKey → [{address, staked, registeredAt}] map from decoded data
       type ChildMeta = { address: string; staked: number; registeredAt: number };
@@ -2015,9 +2020,11 @@ export async function solanaGetReferralInfo(ownerAddress: string): Promise<Refer
     let fullNetworkActiveCount = referrals.filter(r => r.stakedAmount > 0).length;
     let fullNetworkTotalStaked = ownStaked + referrals.reduce((s, r) => s + r.stakedAmount, 0);
     try {
-      const allDecoded: any[] = await getAllUserAccounts();
+      // Reuse the fetch above when it succeeded; only re-fetch if that first
+      // attempt fell through to the memcmp fallback (allDecoded left empty).
+      const decoded: any[] = allDecoded.length > 0 ? allDecoded : await getAllUserAccounts();
       const referrerMapFull = new Map<string, { addr: string; staked: number }[]>();
-      for (const item of allDecoded) {
+      for (const item of decoded) {
         try {
           const ref: PublicKey | null = item.account.referrer ?? null;
           if (!ref) continue;

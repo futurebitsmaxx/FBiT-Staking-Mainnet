@@ -43,7 +43,7 @@ const nextConfig = {
       // Broad https: for images — IPFS-hosted token logos come from many
       // rotating gateway hosts with no practical fixed list.
       "img-src 'self' data: blob: https:",
-      "connect-src 'self' https://api.mainnet-beta.solana.com https://mainnet.helius-rpc.com https://*.helius-rpc.com https://lite-api.jup.ag https://api.geckoterminal.com https://api.dexscreener.com https://www.google-analytics.com wss://relay.walletconnect.com https://relay.walletconnect.com https://pulse.walletconnect.org https://api.web3modal.org https://explorer-api.walletconnect.com https://verify.walletconnect.com https://*.walletconnect.com https://*.walletconnect.org",
+      "connect-src 'self' https://api.mainnet-beta.solana.com https://mainnet.helius-rpc.com https://*.helius-rpc.com https://lite-api.jup.ag https://api.geckoterminal.com https://api.dexscreener.com https://www.google-analytics.com https://analytics.google.com https://stats.g.doubleclick.net wss://relay.walletconnect.com https://relay.walletconnect.com https://pulse.walletconnect.org https://api.web3modal.org https://explorer-api.walletconnect.com https://verify.walletconnect.com https://*.walletconnect.com https://*.walletconnect.org",
       "frame-src 'self' https://www.geckoterminal.com https://verify.walletconnect.com https://verify.walletconnect.org",
       "frame-ancestors 'none'",
       "object-src 'none'",
