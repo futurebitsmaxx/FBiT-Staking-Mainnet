@@ -12,7 +12,10 @@ import { isAllowedOrigin } from '@/lib/security';
 export const runtime    = 'nodejs';
 export const maxDuration = 15;
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY ?? '' });
+// .trim() strips a trailing \r\n Vercel can append when an env var is set via
+// the dashboard on Windows (see web/src/lib/config.ts for the same pattern) —
+// an untrimmed key fails Anthropic's auth with no useful client-side signal.
+const client = new Anthropic({ apiKey: (process.env.ANTHROPIC_API_KEY ?? '').trim() });
 
 // ── Simple in-process rate limiter (15 req / min per IP) ──────────────────────
 // Caveat: this Map lives in a single warm function instance. Serverless platforms
