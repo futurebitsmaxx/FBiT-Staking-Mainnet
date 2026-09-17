@@ -15,7 +15,7 @@
 :root {
   --brand-primary: #00E676;
   --brand-secondary: #00C853;
-  --surface-dark: #060d19;
+  --surface-dark: #050505;
   --surface-card: #0f1729;
   --surface-elevated: #162033;
   --text-primary: #f1f5f9;
@@ -79,9 +79,9 @@
     box-shadow: 0 0 30px var(--glow-green);
   }
 
-  /* Landing page runs on a near-black body (see app/page.tsx) instead of the
-     app-wide navy surface — scope glass panels here so they read as black-
-     tinted frosted glass instead of showing the old navy tone through them. */
+  /* The whole app runs on the landing page's near-black body (see
+     layout.tsx) — scope glass panels here so they read as black-tinted
+     frosted glass instead of showing the old navy tone through them. */
   .landing-page .glass,
   .landing-page .glass-card {
     background: rgba(8, 8, 8, 0.65);

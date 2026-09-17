@@ -308,7 +308,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <DataMigration />
         <div className="bg-mesh fixed inset-0" />
         <div className="grid-pattern fixed inset-0" />
-        <div className="relative z-10 min-h-screen">
+        <div className="relative z-10 min-h-screen landing-page">
           {children}
         </div>
         <SupportChat />
