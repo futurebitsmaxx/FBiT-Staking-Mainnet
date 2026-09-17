@@ -293,7 +293,7 @@ export default function Header() {
               <span className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-brand-500 border-2 border-surface-900 animate-pulse" />
             </div>
             <div className="hidden sm:block">
-              <h1 className="font-display font-bold text-lg leading-tight bg-gradient-to-r from-accent-purple to-brand-500 bg-clip-text text-transparent">FutureBit</h1>
+              <h1 className="font-display font-bold text-lg leading-tight bg-linear-to-r from-accent-purple to-brand-500 bg-clip-text text-transparent">FutureBit</h1>
               <p className="text-[10px] text-text-secondary font-mono tracking-wider uppercase">Solana Protocol</p>
             </div>
           </Link>
