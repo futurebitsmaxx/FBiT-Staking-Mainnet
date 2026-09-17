@@ -307,7 +307,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <ExtensionErrorSuppressor />
         <DataMigration />
         <div className="bg-mesh fixed inset-0" />
-        <div className="grid-pattern fixed inset-0" />
+        {/* Capped to the same max-w-7xl column every page's content sits
+            in — a full-bleed grid used to leave visible bare squares in
+            the empty side margins on wide screens. */}
+        <div className="grid-pattern fixed inset-y-0 left-1/2 -translate-x-1/2 w-full max-w-7xl" />
         <div className="relative z-10 min-h-screen landing-page">
           {children}
         </div>
