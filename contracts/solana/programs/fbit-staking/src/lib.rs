@@ -481,17 +481,25 @@ pub mod fbit_staking {
                 let ref_reward = staked_amount.checked_mul(level_bps).unwrap().checked_div(10_000).unwrap();
                 let can_pay    = !is_blocked && ref_reward > 0 && ctx.accounts.platform.reward_pool_balance >= ref_reward;
 
-                // [C1] Verify reward ATA before mutable borrow (only when paying)
-                if can_pay {
-                    require!(ref_reward_ai.owner == &token::ID, StakingError::InvalidReferralATA);
-                    let ata_data = ref_reward_ai.try_borrow_data()
-                        .map_err(|_| error!(StakingError::InvalidReferralATA))?;
-                    require!(ata_data.len() >= 64, StakingError::InvalidReferralATA);
-                    let ata_mint: [u8; 32]  = ata_data[0..32].try_into().map_err(|_| error!(StakingError::InvalidReferralATA))?;
-                    let ata_owner: [u8; 32] = ata_data[32..64].try_into().map_err(|_| error!(StakingError::InvalidReferralATA))?;
-                    require!(Pubkey::from(ata_mint)  == reward_mint_key,  StakingError::InvalidReferralATA);
-                    require!(Pubkey::from(ata_owner) == expected_key,     StakingError::InvalidReferralATA);
-                }
+                // [C1] Verify reward ATA — soft-checked, mirrors claim_rewards/compound_rewards'
+                // ata_ok pattern below. A malformed/missing/mismatched ATA (e.g. the referrer
+                // staked their full balance and their wallet auto-closed the resulting empty
+                // ATA to reclaim rent) now skips just this level's payment instead of hard-
+                // failing the staker's entire transaction with InvalidReferralATA — that bug
+                // blocked every downstream stake whenever any single upline referrer's ATA was
+                // temporarily gone, even though team_total_staked/team_size below don't depend
+                // on payment at all and always should have gone through regardless.
+                let ata_ok = can_pay && ref_reward_ai.owner == &token::ID && {
+                    match ref_reward_ai.try_borrow_data() {
+                        Ok(d) if d.len() >= 64 => {
+                            let ata_mint: [u8; 32]  = d[0..32].try_into().unwrap();
+                            let ata_owner: [u8; 32] = d[32..64].try_into().unwrap();
+                            Pubkey::from(ata_mint) == reward_mint_key && Pubkey::from(ata_owner) == expected_key
+                        }
+                        _ => false,
+                    }
+                };
+                let will_pay = can_pay && ata_ok;
 
                 // Mutable update: team_total_staked (always) + total_referral_rewards (if paying)
                 // Single write per ancestor — automatic team tracking.
@@ -510,7 +518,7 @@ pub mod fbit_staking {
                         updated.referral_count = updated.referral_count.saturating_add(1);
                         updated.team_size      = updated.team_size.saturating_add(1);
                     }
-                    if can_pay {
+                    if will_pay {
                         updated.total_referral_rewards = updated.total_referral_rewards
                             .checked_add(ref_reward).unwrap();
                     }
@@ -518,7 +526,7 @@ pub mod fbit_staking {
                         .map_err(|_| error!(StakingError::Unauthorized))?;
                 }
 
-                if !can_pay { continue; }
+                if !will_pay { continue; }
 
                 // Transfer reward_vault → referrer's reward ATA
                 token::transfer(CpiContext::new_with_signer(
