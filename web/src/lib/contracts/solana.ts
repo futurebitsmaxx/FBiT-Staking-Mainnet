@@ -2276,16 +2276,24 @@ export async function solanaGetReferralOnChainHistory(
         if (!tx) return;
 
             const logs: string[] = tx.meta?.logMessages ?? [];
-            // Only stake instructions distribute referral rewards
-            if (!logs.some(l => l.includes('Instruction: Stake'))) return;
+            // Two separate referral layers pay out here: the one-time 10-level
+            // referral (Stake) and the recurring claim-time referral (ClaimRewards/
+            // CompoundRewards, added in v2.7) — a wallet's referral history is
+            // dominated by the latter once their downline is actively claiming, so
+            // missing these two left "on-chain activity" showing almost nothing.
+            let sourceLabel: string | null = null;
+            if (logs.some(l => l.includes('Instruction: Stake'))) sourceLabel = 'staked';
+            else if (logs.some(l => l.includes('Instruction: ClaimRewards'))) sourceLabel = 'claimed rewards';
+            else if (logs.some(l => l.includes('Instruction: CompoundRewards'))) sourceLabel = 'compounded rewards';
+            if (!sourceLabel) return;
 
-            // The fee-payer of the transaction is the staker
+            // The fee-payer of the transaction is the staker/claimant
             const msg    = tx.transaction.message as any;
             const payerPubkey = msg.accountKeys?.[0]?.pubkey;
             const payer: string = typeof payerPubkey === 'string'
               ? payerPubkey
               : payerPubkey?.toBase58?.() ?? '';
-            // Skip our own stake transactions — only other wallets staking triggers referral pay
+            // Skip our own transactions — only other wallets' actions trigger referral pay
             if (!payer || payer === address) return;
 
             // Measure change in our reward-mint ATA balance
@@ -2302,7 +2310,7 @@ export async function solanaGetReferralOnChainHistory(
             records.push({
               id:        `sol-ref-${sig.signature}`,
               type:      'referral',
-              label:     `Referral reward — ${payer.slice(0, 6)}...${payer.slice(-4)} staked`,
+              label:     `Referral reward — ${payer.slice(0, 6)}...${payer.slice(-4)} ${sourceLabel}`,
               amount:    diff,
               txHash:    sig.signature,
               timestamp: (sig.blockTime ?? 0) * 1000,
