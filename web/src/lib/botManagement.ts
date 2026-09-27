@@ -464,6 +464,19 @@ export class BotGuard {
 
   async assessFull(): Promise<BotAssessment> {
     if (this._fullRunning) return this.assess();
+
+    // Skip the 1.1MB TF.js chunk entirely for sessions Layers 1–6 already
+    // read as clearly clean: near-zero fingerprint risk, real accumulated
+    // interaction (humanScore only crosses this from actual mouse/click/
+    // scroll activity — idle time alone caps out at 15), and no abuse flags.
+    // Every other session — including a fresh page load with no interaction
+    // yet, which is exactly what a headless/automated visitor looks like —
+    // still gets the full ML + Claude treatment, so detection strength for
+    // anything actually suspicious is unchanged.
+    const clearlyClean =
+      this.fp.score < 10 && this.behavior.humanScore() >= 30 && !this.abuse.isAbusive();
+    if (clearlyClean) return this.assess();
+
     this._fullRunning = true;
 
     try {

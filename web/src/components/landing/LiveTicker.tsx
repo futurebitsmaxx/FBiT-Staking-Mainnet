@@ -5,7 +5,11 @@ import { useTokenPrice } from '@/hooks/useTokenPrice';
 import { NETWORK_CONFIG } from '@/lib/config';
 
 const TOTAL_SUPPLY = 250_000_000;
-const HOLDERS_REFRESH_MS = 60_000;
+// Every visitor on the highest-traffic page hits this — and it shares the
+// same rate-limited RPC key that stake/claim/compound/referral depend on.
+// Holder count doesn't meaningfully change minute to minute, so 60s was pure
+// waste against that shared quota; 5 minutes is still fresh enough to feel live.
+const HOLDERS_REFRESH_MS = 300_000;
 
 function formatPrice(n: number): string {
   return n < 0.01 ? `$${n.toPrecision(3)}` : `$${n.toFixed(4)}`;

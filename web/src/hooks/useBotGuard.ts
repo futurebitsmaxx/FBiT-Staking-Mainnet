@@ -37,9 +37,19 @@ export function useBotGuard(): BotGuardHook {
     return () => setChallengeRequiredCallback(null);
   }, [guard]);
 
-  // Run Layer 7 (TF.js) + Layer 8 (Claude) once on mount, then every 30s.
-  // assessFull() is non-blocking — it updates cached state and the next
-  // assess() call picks it up automatically.
+  // Run Layer 7 (TF.js) + Layer 8 (Claude), then every 30s. assessFull() is
+  // non-blocking — it updates cached state and the next assess() call picks
+  // it up automatically.
+  //
+  // The first run is delayed a few seconds rather than fired at mount: a
+  // fresh page load has zero accumulated mouse/click/scroll signal for
+  // *any* visitor yet, genuine or not, so assessFull()'s clean-session skip
+  // could never trigger on an immediate first call — every single visitor
+  // would always pay the 1.1MB TF.js download on page load regardless of
+  // how the delayed checks turn out. Waiting first gives real users time to
+  // naturally generate that signal, so ordinary sessions actually get to
+  // skip it; a session that's still untouched after the delay reads exactly
+  // like automation and still gets the full check.
   useEffect(() => {
     let cancelled = false;
 
@@ -49,9 +59,9 @@ export function useBotGuard(): BotGuardHook {
       if (!cancelled) setAssessment(full);
     };
 
-    run();
+    const initialTimer = setTimeout(run, 4_000);
     const id = setInterval(run, 30_000);
-    return () => { cancelled = true; clearInterval(id); };
+    return () => { cancelled = true; clearTimeout(initialTimer); clearInterval(id); };
   }, [guard]);
 
   // Lightweight sync refresh every 5 s (captures behavioral score changes)
