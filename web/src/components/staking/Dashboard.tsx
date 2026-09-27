@@ -843,7 +843,7 @@ function BurnEmissionPanel({ stats, network, priceUsd }: { stats: PlatformStats;
       <div className="flex items-center gap-2 mb-3">
         <span className="text-accent-rose text-lg">🔥</span>
         <h3 className="font-display font-semibold text-sm uppercase tracking-wider text-text-secondary">
-          {stats.isRenounced ? 'Admin Fee & PoS Emission' : 'Burn & PoS Emission'}
+          Burn & PoS Emission
         </h3>
       </div>
       <div className={`grid grid-cols-2 gap-4 ${colClass}`}>
